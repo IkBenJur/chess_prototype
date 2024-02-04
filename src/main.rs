@@ -32,3 +32,83 @@ impl Board {
     }
 }
 
+fn draw_board(board: &Board) -> String {
+    let mut board_builder: Vec<Vec<char>> = vec![vec!['X'; 8]; 8];
+
+    for row in 0..8 {
+        for col in 0..8 {
+            if board.white_pawns & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'P';
+            }
+
+            if board.white_rooks & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'R';
+            }
+
+            if board.white_knights & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'N';
+            }
+            
+            if board.white_bishops & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'B';
+            }
+            
+            if board.white_queens & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'Q';
+            }
+            
+            if board.white_king & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'K';
+            }
+            
+            if board.black_pawns & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'p';
+            }
+            
+            if board.black_rooks & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'r';
+            }
+            
+            if board.black_knights & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'n';
+            }
+            
+            if board.black_bishops & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'b';
+            }
+            
+            if board.black_queens & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'q';
+            }
+            
+            if board.black_king & (1u64 << (col + row * 8)) != 0 {
+                board_builder[row][col] = 'k';
+            }
+        }
+    } 
+    
+    let mut result = String::new();
+
+    result.push_str("  a b c d e f g h\n");
+
+    for (i, row) in board_builder.iter().enumerate() {
+        result.push_str(&(8 - i).to_string());
+        result.push(' ');
+
+        for &square in row {
+            result.push(square);
+            result.push(' ');
+        }
+
+        result.push('\n');
+    }
+
+    result
+}
+
+fn main() {
+    let board = Board::new();
+    let board_representation = draw_board(&board);
+    println!("{}", board_representation);
+}
+
