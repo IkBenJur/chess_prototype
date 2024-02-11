@@ -1,3 +1,5 @@
+//Add attack and pushing boards
+//Add occupied squares
 #[derive(Clone, Copy)]
 enum Pieces {
     Pawns,
@@ -7,110 +9,85 @@ enum Pieces {
     Kings,
     Queens,
 }
+
 struct Board {
-    white_pawns: u64,
-    black_pawns: u64,
-    white_rooks: u64,
-    black_rooks: u64,
-    white_knights: u64,
-    black_knights: u64,
-    white_bishops: u64,
-    black_bishops: u64,
-    white_queens: u64,
-    black_queens: u64,
-    white_king: u64,
-    black_king: u64,
+    pieces: [u64; 6],
+
+    black_pieces: u64,
+    white_pieces: u64,
 }
 
 impl Board {
     fn new() -> Self {
         Board {
-            white_pawns: 0b0000000000000000000000000000000000000000000000001111111100000000,
-            black_pawns: 0b0000000011111111000000000000000000000000000000000000000000000000,
-            white_rooks: 0b0000000000000000000000000000000000000000000000000000000010000001,
-            black_rooks: 0b1000000100000000000000000000000000000000000000000000000000000000,
-            white_knights: 0b0000000000000000000000000000000000000000000000000000000001000010,
-            black_knights: 0b0100001000000000000000000000000000000000000000000000000000000000,
-            white_bishops: 0b0000000000000000000000000000000000000000000000000000000000100100,
-            black_bishops: 0b0010010000000000000000000000000000000000000000000000000000000000,
-            white_queens: 0b0000000000000000000000000000000000000000000000000000000000010000,
-            black_queens: 0b0000100000000000000000000000000000000000000000000000000000000000,
-            white_king: 0b0000000000000000000000000000000000000000000000000000000000001000,
-            black_king: 0b00001000000000000000000000000000000000000000000000000000000000000,
+            pieces: [
+                0b0000000011111111000000000000000000000000000000001111111100000000, //Pawns
+                0b1000000100000000000000000000000000000000000000000000000010000001, //Rooks
+                0b0100001000000000000000000000000000000000000000000000000001000010, //Knights
+                0b0010010000000000000000000000000000000000000000000000000000100100, //Bishops
+                0b0000100000000000000000000000000000000000000000000000000000001000, //Kings
+                0b0001000000000000000000000000000000000000000000000000000000010000, //Queens
+            ],
+
+            white_pieces: 0b1111111111111111000000000000000000000000000000000000000000000000,
+            black_pieces: 0b0000000000000000000000000000000000000000000000001111111111111111,
         }
     }
-}
 
-fn draw_board(board: &Board) -> String {
-    let mut board_builder: Vec<Vec<char>> = vec![vec!['X'; 8]; 8];
-
-    for row in 0..8 {
-        for col in 0..8 {
-            if board.white_pawns & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'P';
-            }
-
-            if board.white_rooks & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'R';
-            }
-
-            if board.white_knights & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'N';
-            }
-            
-            if board.white_bishops & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'B';
-            }
-            
-            if board.white_queens & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'Q';
-            }
-            
-            if board.white_king & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'K';
-            }
-            
-            if board.black_pawns & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'p';
-            }
-            
-            if board.black_rooks & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'r';
-            }
-            
-            if board.black_knights & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'n';
-            }
-            
-            if board.black_bishops & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'b';
-            }
-            
-            if board.black_queens & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'q';
-            }
-            
-            if board.black_king & (1u64 << (col + row * 8)) != 0 {
-                board_builder[row][col] = 'k';
-            }
-        }
-    } 
+    fn draw_pieces(&self, mut board_builder: Vec<char>, piece: Pieces, white: bool) -> Vec<char> {
+        let mut pieces = self.pieces[piece as usize] & if white {
+            self.white_pieces
+        } else {
+            self.black_pieces
+        };
     
-    let mut result = String::new();
+        while pieces > 0 {
+            let square_index = pieces.trailing_zeros() as usize;
+            board_builder[square_index] = piece_to_char(&piece, white);
+            pieces &= !(1u64 << square_index);
+        }
+    
+        board_builder
+    }
+    
 
-    result.push_str("  a b c d e f g h\n");
+    fn draw_board(&self) -> String {
+        let board_builder: Vec<char> = vec!['X'; 64];
 
-    for (i, row) in board_builder.iter().enumerate() {
-        result.push_str(&(8 - i).to_string());
-        result.push(' ');
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Pawns, true);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Pawns, false);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Rooks, true);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Rooks, false);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Knights, true);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Knights, false);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Bishops, true);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Bishops, false);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Queens, true);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Queens, false);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Kings, true);
+        let board_builder =  self.draw_pieces(board_builder, Pieces::Kings, false);
+        
+        let mut result = String::new();
 
-        for &square in row {
+        result.push_str("  a b c d e f g h\n");
+
+        for (i, &square) in board_builder.iter().enumerate() {
+            if i % 8 == 0 {
+                result.push_str(&(8 - i / 8).to_string());
+                result.push(' ');
+            }
+
             result.push(square);
             result.push(' ');
+
+            if i % 8 == 7 {
+                result.push('\n');
+            }
         }
 
-        result.push('\n');
+        return result;
     }
+}
 
 fn piece_to_char(piece: &Pieces, white: bool) -> char {
     match (piece, white) {
@@ -131,7 +108,6 @@ fn piece_to_char(piece: &Pieces, white: bool) -> char {
 
 fn main() {
     let board = Board::new();
-    let board_representation = draw_board(&board);
-    println!("{}", board_representation);
+    println!("{}", board.draw_board());
 }
 
