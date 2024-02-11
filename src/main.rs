@@ -112,7 +112,21 @@ fn draw_board(board: &Board) -> String {
         result.push('\n');
     }
 
-    result
+fn piece_to_char(piece: &Pieces, white: bool) -> char {
+    match (piece, white) {
+        (Pieces::Pawns, true) => 'P',
+        (Pieces::Pawns, false) => 'p',
+        (Pieces::Rooks, true) => 'R',
+        (Pieces::Rooks, false) => 'r',
+        (Pieces::Knights, true) => 'N',
+        (Pieces::Knights, false) => 'n',
+        (Pieces::Bishops, true) => 'B',
+        (Pieces::Bishops, false) => 'b',
+        (Pieces::Kings, true) => 'K',
+        (Pieces::Kings, false) => 'k',
+        (Pieces::Queens, true) => 'Q',
+        (Pieces::Queens, false) => 'q',
+    }
 }
 
 fn main() {
