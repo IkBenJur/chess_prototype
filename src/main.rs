@@ -1,3 +1,12 @@
+#[derive(Clone, Copy)]
+enum Pieces {
+    Pawns,
+    Rooks,
+    Bishops,
+    Knights,
+    Kings,
+    Queens,
+}
 struct Board {
     white_pawns: u64,
     black_pawns: u64,
