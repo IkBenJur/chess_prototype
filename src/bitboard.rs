@@ -1,6 +1,6 @@
 pub type Bitboard  = u64;
 
-trait BitManipulation {
+pub trait BitManipulation {
     fn toggle_square(&self, index: u8) -> Bitboard;
 }
 
