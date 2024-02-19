@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn board_display() {
-        let result_string = "  a b c d e f g h\n8 r k b q k b k r \n7 p p p p p p p p \n6 X X X X X X X X \n5 X X X X X X X X \n4 X X X X X X X X \n3 X X X X X X X X \n2 P P P P P P P P \n1 R K B Q K B K R \n";
+        let result_string = "  a b c d e f g h\n8 r n b q k b n r \n7 p p p p p p p p \n6 . . . . . . . . \n5 . . . . . . . . \n4 . . . . . . . . \n3 . . . . . . . . \n2 P P P P P P P P \n1 R N B Q K B N R \n";
 
         let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
