@@ -10,7 +10,7 @@ pub struct Board {
 }
 
 impl Board {
-    fn new() -> Self{
+    pub fn new() -> Self{
         Board {
             pieces: [
                 0 as Bitboard,
@@ -47,7 +47,7 @@ impl Board {
         return self;
     }
 
-    fn from_fen(fen_string: &str) -> Board {
+    pub fn from_fen(fen_string: &str) -> Board {
         let fen_parts: Vec<&str> = fen_string.split_whitespace().collect();
         let mut board = Board::new();
 
