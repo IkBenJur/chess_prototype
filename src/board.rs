@@ -107,7 +107,7 @@ impl std::fmt::Display for Board {
         let white_king = self.white_pieces & self.pieces[Pieces::Kings as usize];
         let black_king = self.black_pieces & self.pieces[Pieces::Kings as usize];
         
-        let board_builder: Vec<char> = vec!['X'; 64];
+        let board_builder: Vec<char> = vec!['.'; 64];
 
         let board_builder = map_bitboard_to_string(white_pawns, board_builder, 'P');
         let board_builder = map_bitboard_to_string(black_pawns, board_builder, 'p');
@@ -115,8 +115,8 @@ impl std::fmt::Display for Board {
         let board_builder = map_bitboard_to_string(white_rooks, board_builder, 'R');
         let board_builder = map_bitboard_to_string(black_rooks, board_builder, 'r');
         
-        let board_builder = map_bitboard_to_string(white_knights, board_builder, 'K');
-        let board_builder = map_bitboard_to_string(black_knights, board_builder, 'k');
+        let board_builder = map_bitboard_to_string(white_knights, board_builder, 'N');
+        let board_builder = map_bitboard_to_string(black_knights, board_builder, 'n');
         
         let board_builder = map_bitboard_to_string(white_bishops, board_builder, 'B');
         let board_builder = map_bitboard_to_string(black_bishops, board_builder, 'b');
