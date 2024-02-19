@@ -36,8 +36,30 @@ fn pawn_moves_double_push(board: &Board, white_turn: bool) -> Bitboard {
     return pawn_moves_double_push;
 }
 
+fn knight_moves(board: &Board, white_turn: bool) -> Bitboard {
+    let knights = board.pieces[Pieces::Knights as usize]
+        & if white_turn {
+            board.white_pieces
+        } else {
+            board.black_pieces
+        };
+
+    let knight_moves = (knights << 15)
+        | (knights << 17)
+        | (knights << 6)
+        | (knights << 10)
+        | (knights >> 10)
+        | (knights >> 6)
+        | (knights >> 17)
+        | (knights >> 15);
+
+    return knight_moves;
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::move_generation::knight_moves;
+
     use super::*;
 
     #[test]
@@ -70,6 +92,23 @@ mod tests {
         let black_moves: Bitboard = pawn_moves_double_push(&board, false);
         assert_eq!(
             0b0000000000000000000000000000000000000000000000000000000000000000,
+            black_moves
+        );
+    }
+
+    #[test]
+    fn find_knight_moves() {
+        let board = Board::from_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 w KQkq - 0 1");
+        
+        let white_moves: Bitboard = knight_moves(&board, true);
+        assert_eq!(
+            0b0000000000000000000101000010001010100001001100100001010100010000,
+            white_moves
+        );
+
+        let black_moves: Bitboard = knight_moves(&board, false);
+        assert_eq!(
+            0b0000000000000000000000000101001010001100010000001000110001010010,
             black_moves
         );
     }
