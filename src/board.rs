@@ -3,10 +3,10 @@ use crate::bitboard::BitManipulation;
 use crate::piece::Pieces;
 
 pub struct Board {
-    pieces: [Bitboard; 6],
+    pub pieces: [Bitboard; 6],
     
-    black_pieces: Bitboard,
-    white_pieces: Bitboard,
+    pub black_pieces: Bitboard,
+    pub white_pieces: Bitboard,
 }
 
 impl Board {
