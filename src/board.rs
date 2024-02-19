@@ -77,6 +77,16 @@ impl Board {
     }
 }
 
+fn map_bitboard_to_string(mut bitboard: Bitboard, mut board_string: Vec<char>, piece_char: char) -> Vec<char> {
+    while bitboard > 0 {
+        let square_index = bitboard.trailing_zeros() as usize;
+        board_string[square_index] = piece_char;
+        bitboard &= !(1 << square_index);
+    }
+
+    return board_string;
+} 
+
 #[cfg(test)]
 mod tests {
     use super::*;
