@@ -86,6 +86,66 @@ fn map_bitboard_to_string(mut bitboard: Bitboard, mut board_string: Vec<char>, p
 
     return board_string;
 } 
+impl std::fmt::Display for Board {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+        let white_pawns = self.white_pieces & self.pieces[Pieces::Pawns as usize];
+        let black_pawns = self.black_pieces & self.pieces[Pieces::Pawns as usize];
+
+        let white_rooks = self.white_pieces & self.pieces[Pieces::Rooks as usize];
+        let black_rooks = self.black_pieces & self.pieces[Pieces::Rooks as usize];
+        
+        let white_knights = self.white_pieces & self.pieces[Pieces::Knights as usize];
+        let black_knights = self.black_pieces & self.pieces[Pieces::Knights as usize];
+
+        let white_bishops = self.white_pieces & self.pieces[Pieces::Bishops as usize];
+        let black_bishops = self.black_pieces & self.pieces[Pieces::Bishops as usize];
+
+        let white_queens = self.white_pieces & self.pieces[Pieces::Queens as usize];
+        let black_queens = self.black_pieces & self.pieces[Pieces::Queens as usize];
+
+        let white_king = self.white_pieces & self.pieces[Pieces::Kings as usize];
+        let black_king = self.black_pieces & self.pieces[Pieces::Kings as usize];
+        
+        let board_builder: Vec<char> = vec!['X'; 64];
+
+        let board_builder = map_bitboard_to_string(white_pawns, board_builder, 'P');
+        let board_builder = map_bitboard_to_string(black_pawns, board_builder, 'p');
+        
+        let board_builder = map_bitboard_to_string(white_rooks, board_builder, 'R');
+        let board_builder = map_bitboard_to_string(black_rooks, board_builder, 'r');
+        
+        let board_builder = map_bitboard_to_string(white_knights, board_builder, 'K');
+        let board_builder = map_bitboard_to_string(black_knights, board_builder, 'k');
+        
+        let board_builder = map_bitboard_to_string(white_bishops, board_builder, 'B');
+        let board_builder = map_bitboard_to_string(black_bishops, board_builder, 'b');
+        
+        let board_builder = map_bitboard_to_string(white_queens, board_builder, 'Q');
+        let board_builder = map_bitboard_to_string(black_queens, board_builder, 'q');
+
+        let board_builder = map_bitboard_to_string(white_king, board_builder, 'K');
+        let board_builder = map_bitboard_to_string(black_king, board_builder, 'k');
+    
+        let mut result = String::new();
+        result.push_str("  a b c d e f g h\n");
+        
+        for (i, &square) in board_builder.iter().enumerate() {
+            if i % 8 == 0 {
+                result.push_str(&(8 - i / 8).to_string());
+                result.push(' ');
+            }
+
+            result.push(square);
+            result.push(' ');
+
+            if i % 8 == 7 {
+                result.push('\n');
+            }
+        }
+
+        write!(f, "{}", result)
+    }
+}
 
 #[cfg(test)]
 mod tests {
