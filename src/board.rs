@@ -86,6 +86,7 @@ fn map_bitboard_to_string(mut bitboard: Bitboard, mut board_string: Vec<char>, p
 
     return board_string;
 } 
+
 impl std::fmt::Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         let white_pawns = self.white_pieces & self.pieces[Pieces::Pawns as usize];
@@ -177,5 +178,14 @@ mod tests {
         assert_eq!(0b0000000000010000000000000000000000000000000000000000000000001000, board.pieces[Pieces::Kings as usize]);
         assert_eq!(0b0000000000010101000010000100000010011000000000000101000000000000, board.white_pieces);
         assert_eq!(0b0100000100000000000000000000000000000010001000011010100110001101, board.black_pieces);
+    }
+
+    #[test]
+    fn board_display() {
+        let result_string = "  a b c d e f g h\n8 r k b q k b k r \n7 p p p p p p p p \n6 X X X X X X X X \n5 X X X X X X X X \n4 X X X X X X X X \n3 X X X X X X X X \n2 P P P P P P P P \n1 R K B Q K B K R \n";
+
+        let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+        assert_eq!(result_string, format!("{board}"));
     }
 }
