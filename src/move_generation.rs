@@ -67,24 +67,109 @@ fn pawn_moves_double_push(board: &Board, white_turn: bool) -> Vec<Move> {
     return moves;
 }
 
-fn knight_moves(board: &Board, white_turn: bool) -> Bitboard {
-    let knights = board.pieces[Pieces::Knights as usize]
+fn knight_moves(board: &Board, white_turn: bool) -> Vec<Move> {
+    let mut moves: Vec<Move> = Vec::new();
+    let mut knights = board.pieces[Pieces::Knights as usize]
         & if white_turn {
             board.white_pieces
         } else {
             board.black_pieces
         };
+        
+    let own_pieces = if white_turn {
+        board.white_pieces
+    } else {
+        board.black_pieces
+    };
 
-    let knight_moves = (knights << 15)
-        | (knights << 17)
-        | (knights << 6)
-        | (knights << 10)
-        | (knights >> 10)
-        | (knights >> 6)
-        | (knights >> 17)
-        | (knights >> 15);
+    while knights > 0 {
+        let from: u32 = knights.trailing_zeros();
+        let knight_position_bitboard = 1 << from;
 
-    return knight_moves;
+        let knight_move = (knight_position_bitboard << 17) & (!FILE_A & !own_pieces);
+        if knight_move > 0 {
+            let to = knight_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Knights,
+            });
+        }
+
+        let knight_move = ((knight_position_bitboard << 10) & (!FILE_A & !FILE_B)) & !own_pieces;
+        if knight_move > 0 {
+            let to = knight_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Knights,
+            });
+        }
+
+        let knight_move = ((knight_position_bitboard >> 6) & (!FILE_A & !FILE_B)) & !own_pieces;
+        if knight_move > 0 {
+            let to = knight_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Knights,
+            });
+        }
+
+        let knight_move = ((knight_position_bitboard >> 15) & (!FILE_A)) & !own_pieces;
+        if knight_move > 0 {
+            let to = knight_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Knights,
+            });
+        }
+
+        let knight_move = ((knight_position_bitboard << 15) & (!FILE_H)) & !own_pieces;
+        if knight_move > 0 {
+            let to = knight_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Knights,
+            });
+        }
+
+        let knight_move = ((knight_position_bitboard << 6) & (!FILE_G & !FILE_H)) & !own_pieces;
+        if knight_move > 0 {
+            let to = knight_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Knights,
+            });
+        }
+
+        let knight_move = ((knight_position_bitboard >> 10) & (!FILE_G & !FILE_H)) & !own_pieces;
+        if knight_move > 0 {
+            let to = knight_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Knights,
+            });
+        }
+
+        let knight_move = ((knight_position_bitboard >> 17) & (!FILE_H)) & !own_pieces;
+        if knight_move > 0 {
+            let to = knight_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Knights,
+            });
+        }
+
+        knights &= !(1 << from);
+    }
+
+    return moves;
 }
 
 #[cfg(test)]
@@ -180,17 +265,115 @@ mod tests {
     #[test]
     fn find_knight_moves() {
         let board = Board::from_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 w KQkq - 0 1");
-        
-        let white_moves: Bitboard = knight_moves(&board, true);
-        assert_eq!(
-            0b0000000000000000000101000010001010100001001100100001010100010000,
-            white_moves
-        );
 
-        let black_moves: Bitboard = knight_moves(&board, false);
-        assert_eq!(
-            0b0000000000000000000000000101001010001100010000001000110001010010,
-            black_moves
-        );
+        let expected_white_moves = vec![
+            Move {
+                from: 14,
+                to: 29,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 14,
+                to: 20,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 14,
+                to: 4,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 27,
+                to: 44,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 27,
+                to: 37,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 27,
+                to: 21,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 27,
+                to: 42,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 27,
+                to: 33,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 27,
+                to: 17,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 27,
+                to: 10,
+                piece: Pieces::Knights,
+            },
+        ];
+        let white_moves = knight_moves(&board, true);
+        assert_eq!(expected_white_moves, white_moves);
+
+        let expected_black_moves = vec![
+            Move {
+                from: 16,
+                to: 33,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 16,
+                to: 26,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 16,
+                to: 10,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 16,
+                to: 1,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 21,
+                to: 38,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 21,
+                to: 31,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 21,
+                to: 6,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 21,
+                to: 36,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 21,
+                to: 27,
+                piece: Pieces::Knights,
+            },
+            Move {
+                from: 21,
+                to: 4,
+                piece: Pieces::Knights,
+            },
+        ];
+        let black_moves = knight_moves(&board, false);
+        assert_eq!(expected_black_moves, black_moves);
     }
 }
