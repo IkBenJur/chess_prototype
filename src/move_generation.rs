@@ -1,11 +1,13 @@
 use crate::{
-    bitboard::{Bitboard, RANK4, RANK5},
+    bitboard::{Bitboard, FILE_A, FILE_B, FILE_G, FILE_H, RANK4, RANK5},
     board::Board,
     piece::Pieces,
+    r#move::Move,
 };
 
-fn pawn_moves_single_push(board: &Board, white_turn: bool) -> Bitboard {
-    let pawns = board.pieces[Pieces::Pawns as usize]
+fn pawn_moves_single_push(board: &Board, white_turn: bool) -> Vec<Move> {
+    let mut moves: Vec<Move> = Vec::new();
+    let mut pawns = board.pieces[Pieces::Pawns as usize]
         & if white_turn {
             board.white_pieces
         } else {
@@ -14,13 +16,28 @@ fn pawn_moves_single_push(board: &Board, white_turn: bool) -> Bitboard {
 
     let empty_tiles = !(board.white_pieces ^ board.black_pieces);
 
-    let pawn_moves_single_push = if white_turn {
-        pawns >> 8 & empty_tiles
-    } else {
-        pawns << 8 & empty_tiles
-    };
+    while pawns > 0 {
+        let from: u32 = pawns.trailing_zeros();
 
-    return pawn_moves_single_push;
+        let pawn_move = if white_turn {
+            1 << from >> 8 & empty_tiles
+        } else {
+            1 << from << 8 & empty_tiles
+        };
+
+        if pawn_move > 0 {
+            let to = pawn_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Pawns,
+            });
+        }
+
+        pawns &= !(1 << from);
+    }
+
+    return moves;
 }
 
 fn pawn_moves_double_push(board: &Board, white_turn: bool) -> Bitboard {
@@ -66,17 +83,60 @@ mod tests {
     fn single_push_pawn_moves() {
         let board = Board::from_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 w KQkq - 0 1");
 
-        let white_moves: Bitboard = pawn_moves_single_push(&board, true);
-        assert_eq!(
-            0b0000000000000000000001010000100001000000100100000000000000000000,
-            white_moves
-        );
+        let expected_white_moves = vec![
+            Move {
+                from: 28,
+                to: 20,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 31,
+                to: 23,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 38,
+                to: 30,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 43,
+                to: 35,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 48,
+                to: 40,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 50,
+                to: 42,
+                piece: Pieces::Pawns,
+            },
+        ];
+        let white_moves = pawn_moves_single_push(&board, true);
+        assert_eq!(expected_white_moves, white_moves);
 
-        let black_moves: Bitboard = pawn_moves_single_push(&board, false);
-        assert_eq!(
-            0b0000000000000000000000000000001000000000100010000000000000000000,
-            black_moves
-        );
+        let expected_black_moves = vec![
+            Move {
+                from: 11,
+                to: 19,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 15,
+                to: 23,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 25,
+                to: 33,
+                piece: Pieces::Pawns,
+            },
+        ];
+        let black_moves = pawn_moves_single_push(&board, false);
+        assert_eq!(expected_black_moves, black_moves);
     }
 
     #[test]
