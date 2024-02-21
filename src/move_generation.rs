@@ -40,17 +40,31 @@ fn pawn_moves_single_push(board: &Board, white_turn: bool) -> Vec<Move> {
     return moves;
 }
 
-fn pawn_moves_double_push(board: &Board, white_turn: bool) -> Bitboard {
-    let pawn_moves_single_push = pawn_moves_single_push(&board, white_turn);
+fn pawn_moves_double_push(board: &Board, white_turn: bool) -> Vec<Move> {
+    let moves_one_push: Vec<Move> = pawn_moves_single_push(&board, white_turn);
+    let mut moves: Vec<Move> = Vec::new();
+
     let empty_tiles = !(board.white_pieces ^ board.black_pieces);
 
-    let pawn_moves_double_push = if white_turn {
-        pawn_moves_single_push >> 8 & empty_tiles & RANK4
-    } else {
-        pawn_moves_single_push << 8 & empty_tiles & RANK5
-    };
+    for one_push in moves_one_push {
+        let pawn_move = if white_turn {
+            0 | (1 << one_push.to) >> 8 & empty_tiles & RANK4
+        } else {
+            0 | (1 << one_push.to) << 8 & empty_tiles & RANK5
+        };
 
-    return pawn_moves_double_push;
+        if pawn_move > 0 {
+            let from = one_push.from;
+            let to = pawn_move.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Pawns,
+            });
+        }
+    }
+
+    return moves;
 }
 
 fn knight_moves(board: &Board, white_turn: bool) -> Bitboard {
@@ -143,17 +157,24 @@ mod tests {
     fn double_push_pawn_moves() {
         let board = Board::from_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 w KQkq - 0 1");
 
-        let white_moves: Bitboard = pawn_moves_double_push(&board, true);
-        assert_eq!(
-            0b0000000000000000000000000000010100000000000000000000000000000000,
-            white_moves
-        );
+        let expected_white_moves = vec![
+            Move {
+                from: 48,
+                to: 32,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 50,
+                to: 34,
+                piece: Pieces::Pawns,
+            },
+        ];
+        let white_moves = pawn_moves_double_push(&board, true);
+        assert_eq!(expected_white_moves, white_moves);
 
-        let black_moves: Bitboard = pawn_moves_double_push(&board, false);
-        assert_eq!(
-            0b0000000000000000000000000000000000000000000000000000000000000000,
-            black_moves
-        );
+        let expected_black_moves: Vec<Move> = vec![];
+        let black_moves = pawn_moves_double_push(&board, false);
+        assert_eq!(expected_black_moves, black_moves);
     }
 
     #[test]
