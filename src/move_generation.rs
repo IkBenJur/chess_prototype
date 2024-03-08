@@ -821,17 +821,51 @@ fn rook_moves(board: &Board, white_turn: bool) -> Vec<Move> {
 
         for direction in directions {
             let attack_ray = ATTACK_RAYS[from as usize][direction];
-            println!("{:064b}", attack_ray);
+            // println!("{:064b}", attack_ray);
             let blockers = attack_ray & all_pieces;
-            println!("{:064b}", blockers);
+            // println!("{:064b}", blockers);
+            let mut rook_moves = 0;
+
             if blockers > 0 {
-                println!("{:064b}\n", ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]);
+                // println!("{:064b}\n", ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]);
+                rook_moves = match direction {
+                    Direction::North => {
+                        attack_ray ^ ATTACK_RAYS[63 - blockers.leading_zeros() as usize][direction]
+                    }
+                    Direction::East => {
+                        attack_ray ^ ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]
+                    }
+                    Direction::South => {
+                        attack_ray ^ ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]
+                    }
+                    Direction::West => {
+                        attack_ray ^ ATTACK_RAYS[63 - blockers.leading_zeros() as usize][direction]
+                    }
+                    _ => 0,
+                };
             } else {
-                println!("0\n");
+                rook_moves = attack_ray;
             }
-            
+
+            rook_moves &= if white_turn {
+                !board.white_pieces
+            } else {
+                !board.black_pieces
+            };
+
+            while rook_moves > 0 {
+                let to = rook_moves.trailing_zeros();
+                moves.push(Move {
+                    from,
+                    to,
+                    piece: Pieces::Rooks,
+                });
+
+                rook_moves &= !(1 << to)
+            }
+
+            // println!("{:064b}\n", moves);
         }
-        println!("\n");
         // let rook_attack_ray = ROOK_ATTACK_RAYS[from as usize];
         // let blockers = rook_attack_ray & all_pieces;
         // let blocker_ray = println!("\n{:064b}", rooks & !(1 << from));
@@ -1047,9 +1081,121 @@ mod tests {
 
     #[test]
     fn find_rook_moves() {
-        let board = Board::from_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 w KQkq - 0 1");
+        let board = Board::from_fen("8/8/8/1k2N1B1/3p4/1K2p1Q1/1R5R/5b1r w - - 0 1");
 
-        println!("{}", board);
-        rook_moves(&board, false);
+        let expected_white_moves = vec![
+            Move {
+                from: 49,
+                to: 50,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 49,
+                to: 51,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 49,
+                to: 52,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 49,
+                to: 53,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 49,
+                to: 54,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 49,
+                to: 57,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 49,
+                to: 48,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 7,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 15,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 23,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 31,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 39,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 47,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 63,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 50,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 51,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 52,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 53,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 55,
+                to: 54,
+                piece: Pieces::Rooks,
+            },
+        ];
+        let white_moves = rook_moves(&board, true);
+        assert_eq!(expected_white_moves, white_moves);
+
+        let expected_black_moves = vec![
+            Move {
+                from: 63,
+                to: 55,
+                piece: Pieces::Rooks,
+            },
+            Move {
+                from: 63,
+                to: 62,
+                piece: Pieces::Rooks,
+            },
+        ];
+        let black_moves = rook_moves(&board, false);
+        assert_eq!(expected_black_moves, black_moves);
     }
 }
