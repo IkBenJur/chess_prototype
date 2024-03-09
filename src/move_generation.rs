@@ -945,6 +945,92 @@ fn bishop_moves(board: &Board, white_turn: bool) -> Vec<Move> {
     return moves;
 }
 
+fn queen_moves(board: &Board, white_turn: bool) -> Vec<Move> {
+    let mut moves: Vec<Move> = Vec::new();
+
+    let mut queens = if white_turn {
+        board.pieces[Pieces::Queens as usize] & board.white_pieces
+    } else {
+        board.pieces[Pieces::Queens as usize] & board.black_pieces
+    };
+
+    let all_pieces = board.black_pieces | board.white_pieces;
+
+    while queens > 0 {
+        let from = queens.trailing_zeros();
+        let directions = [
+            Direction::North,
+            Direction::NorthEast,
+            Direction::East,
+            Direction::SouthEast,
+            Direction::South,
+            Direction::SouthWest,
+            Direction::West,
+            Direction::NorthWest,
+        ];
+
+        for direction in directions {
+            let attack_ray = ATTACK_RAYS[from as usize][direction];
+            let blockers = attack_ray & all_pieces;
+            let mut queen_moves;
+
+            if blockers > 0 {
+                queen_moves = match direction {
+                    Direction::North => {
+                        attack_ray ^ ATTACK_RAYS[63 - blockers.leading_zeros() as usize][direction]
+                    }
+                    Direction::NorthEast => {
+                        attack_ray ^ ATTACK_RAYS[63 - blockers.leading_zeros() as usize][direction]
+                    }
+                    Direction::East => {
+                        attack_ray ^ ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]
+                    }
+                    Direction::SouthEast => {
+                        attack_ray ^ ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]
+                    }
+                    Direction::South => {
+                        attack_ray ^ ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]
+                    }
+                    Direction::SouthWest => {
+                        attack_ray ^ ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]
+                    }
+                    Direction::West => {
+                        attack_ray ^ ATTACK_RAYS[63 - blockers.leading_zeros() as usize][direction]
+                    }
+                    Direction::NorthWest => {
+                        attack_ray ^ ATTACK_RAYS[63 - blockers.leading_zeros() as usize][direction]
+                    }
+                    _ => 0,
+                };
+            } else {
+                queen_moves = attack_ray;
+            }
+
+            queen_moves &= if white_turn {
+                !board.white_pieces
+            } else {
+                !board.black_pieces
+            };
+
+            while queen_moves > 0 {
+                let to = queen_moves.trailing_zeros();
+                moves.push(Move {
+                    from,
+                    to,
+                    piece: Pieces::Queens,
+                });
+
+                queen_moves &= !(1 << to)
+            }
+        }
+
+        queens &= !(1 << from)
+    }
+
+    return moves;
+
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1365,6 +1451,206 @@ mod tests {
             },
         ];
         let black_moves = bishop_moves(&board, false);
+        assert_eq!(expected_black_moves, black_moves);
+    }
+
+    #[test]
+    fn find_queen_moves(){
+        let board = Board::from_fen("6Nr/5P1p/8/P5q1/3p3B/nK4Q1/RP1Pk3/1R2nb2 w - - 0 1");
+        
+        let expected_white_moves: Vec<Move> = vec![
+            Move {
+                from: 46,
+                to: 30,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 38,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 47,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 55,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 54,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 62,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 53,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 60,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 42,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 43,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 44,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 45,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 1,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 10,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 19,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 28,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 46,
+                to: 37,
+                piece: Pieces::Queens,
+            },
+        ];
+        let white_moves = queen_moves(&board, true);
+        assert_eq!(expected_white_moves, white_moves);
+
+        let expected_black_moves: Vec<Move> = vec![
+            Move {
+                from: 30,
+                to: 6,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 14,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 22,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 23,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 31,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 39,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 38,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 46,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 37,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 44,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 51,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 24,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 25,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 26,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 27,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 28,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 29,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 3,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 12,
+                piece: Pieces::Queens,
+            },
+            Move {
+                from: 30,
+                to: 21,
+                piece: Pieces::Queens,
+            },
+        ];
+        let black_moves = queen_moves(&board, false);
         assert_eq!(expected_black_moves, black_moves);
     }
 }
