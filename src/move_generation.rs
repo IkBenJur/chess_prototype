@@ -824,7 +824,7 @@ fn rook_moves(board: &Board, white_turn: bool) -> Vec<Move> {
             // println!("{:064b}", attack_ray);
             let blockers = attack_ray & all_pieces;
             // println!("{:064b}", blockers);
-            let mut rook_moves = 0;
+            let mut rook_moves;
 
             if blockers > 0 {
                 // println!("{:064b}\n", ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]);
@@ -871,6 +871,75 @@ fn rook_moves(board: &Board, white_turn: bool) -> Vec<Move> {
         // let blocker_ray = println!("\n{:064b}", rooks & !(1 << from));
 
         rooks &= !(1 << from)
+    }
+
+    return moves;
+}
+
+fn bishop_moves(board: &Board, white_turn: bool) -> Vec<Move> {
+    let mut moves: Vec<Move> = Vec::new();
+
+    let mut bishops = if white_turn {
+        board.pieces[Pieces::Bishops as usize] & board.white_pieces
+    } else {
+        board.pieces[Pieces::Bishops as usize] & board.black_pieces
+    };
+
+    let all_pieces = board.black_pieces | board.white_pieces;
+
+    while bishops > 0 {
+        let from = bishops.trailing_zeros();
+        let directions = [
+            Direction::NorthEast,
+            Direction::SouthEast,
+            Direction::SouthWest,
+            Direction::NorthWest,
+        ];
+
+        for direction in directions {
+            let attack_ray = ATTACK_RAYS[from as usize][direction];
+            let blockers = attack_ray & all_pieces;
+            let mut bishop_moves;
+
+            if blockers > 0 {
+                bishop_moves = match direction {
+                    Direction::NorthEast => {
+                        attack_ray ^ ATTACK_RAYS[63 - blockers.leading_zeros() as usize][direction]
+                    }
+                    Direction::SouthEast => {
+                        attack_ray ^ ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]
+                    }
+                    Direction::SouthWest => {
+                        attack_ray ^ ATTACK_RAYS[blockers.trailing_zeros() as usize][direction]
+                    }
+                    Direction::NorthWest => {
+                        attack_ray ^ ATTACK_RAYS[63 - blockers.leading_zeros() as usize][direction]
+                    }
+                    _ => 0,
+                };
+            } else {
+                bishop_moves = attack_ray;
+            }
+
+            bishop_moves &= if white_turn {
+                !board.white_pieces
+            } else {
+                !board.black_pieces
+            };
+
+            while bishop_moves > 0 {
+                let to = bishop_moves.trailing_zeros();
+                moves.push(Move {
+                    from,
+                    to,
+                    piece: Pieces::Bishops,
+                });
+
+                bishop_moves &= !(1 << to)
+            }
+        }
+
+        bishops &= !(1 << from)
     }
 
     return moves;
@@ -1196,6 +1265,106 @@ mod tests {
             },
         ];
         let black_moves = rook_moves(&board, false);
+        assert_eq!(expected_black_moves, black_moves);
+    }
+
+    #[test]
+    fn find_bishop_moves() {
+        let board = Board::from_fen("8/2prkp2/1nQpB1p1/1p2Pn2/p4Pq1/1b3N2/3B3K/2R2R2 w - - 0 1");
+        
+        let expected_white_moves: Vec<Move> = vec![
+            Move {
+                from: 20,
+                to: 13,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 20,
+                to: 29,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 20,
+                to: 27,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 20,
+                to: 34,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 20,
+                to: 41,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 20,
+                to: 11,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 51,
+                to: 44,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 51,
+                to: 60,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 51,
+                to: 24,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 51,
+                to: 33,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 51,
+                to: 42,
+                piece: Pieces::Bishops,
+            },
+        ];
+        let white_moves = bishop_moves(&board, true);
+        assert_eq!(expected_white_moves, white_moves);
+
+        let expected_black_moves: Vec<Move> = vec![
+            Move {
+                from: 41,
+                to: 20,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 41,
+                to: 27,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 41,
+                to: 34,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 41,
+                to: 50,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 41,
+                to: 59,
+                piece: Pieces::Bishops,
+            },
+            Move {
+                from: 41,
+                to: 48,
+                piece: Pieces::Bishops,
+            },
+        ];
+        let black_moves = bishop_moves(&board, false);
         assert_eq!(expected_black_moves, black_moves);
     }
 }
