@@ -11,14 +11,16 @@ pub struct Board {
     pub white_pieces: Bitboard,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct GameState {
     white_turn: bool,
-    en_passant: Option<u8>,
+    en_passant: Option<u32>,
     castling: Castling,
     half_moves: u32,
-    fullmoves: u32,
+    full_moves: u32,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct Castling {
     white_queen_side: bool,
     white_king_side: bool,
@@ -39,7 +41,7 @@ impl Board {
                     black_king_side: true,
                 },
                 half_moves: 0,
-                fullmoves: 0,
+                full_moves: 0,
             },
 
             pieces: [
@@ -119,6 +121,57 @@ impl Board {
                 _ => println!("Unkown character found"),
             }
         }
+
+        let is_white_active_color = fen_parts
+            .get(1)
+            .expect("Invalid FEN string. Active color missing.")
+            .eq(&"w");
+
+        let castling_rights = fen_parts
+            .get(2)
+            .expect("Invalid FEN string. Castling rights missing");
+
+        let castling_right_white_king = castling_rights.contains("K");
+        let castling_right_white_queen = castling_rights.contains("Q");
+
+        let castling_right_black_king = castling_rights.contains("k");
+        let castling_right_black_queen = castling_rights.contains("q");
+
+        let castling_rights = Castling {
+            white_king_side: castling_right_white_king,
+            white_queen_side: castling_right_white_queen,
+            black_king_side: castling_right_black_king,
+            black_queen_side: castling_right_black_queen,
+        };
+
+        let en_passant = fen_parts
+            .get(3)
+            .expect("Invalid FEN string. En passant missing");
+        let en_passant_square_num: Option<u32> = if en_passant.contains('-') {
+            None
+        } else {
+            Some(square_to_num(en_passant.to_string()))
+        };
+
+        let half_moves: u32 = fen_parts
+            .get(4)
+            .expect("Invalid FEN string. Half moves missing")
+            .parse()
+            .unwrap();
+
+        let full_moves: u32 = fen_parts
+            .get(5)
+            .expect("Invalid FEN string. Full moves missing")
+            .parse()
+            .unwrap();
+
+        board.game_state = GameState {
+            white_turn: is_white_active_color,
+            castling: castling_rights,
+            en_passant: en_passant_square_num,
+            half_moves,
+            full_moves,
+        };
 
         return board;
     }
@@ -264,11 +317,26 @@ mod tests {
             0b0000000000000000000000000000000000000000000000001111111111111111,
             board.black_pieces
         );
+
+        let expected_game_state = GameState {
+            white_turn: true,
+            castling: Castling {
+                white_king_side: true,
+                white_queen_side: true,
+                black_king_side: true,
+                black_queen_side: true,
+            },
+            en_passant: None,
+            half_moves: 0,
+            full_moves: 1,
+        };
+
+        assert_eq!(board.game_state, expected_game_state);
     }
 
     #[test]
     fn from_fen_mid_game() {
-        let board = Board::from_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 w KQkq - 0 1");
+        let board = Board::from_fen("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1 b KQkq - 0 1");
 
         assert_eq!(
             0b0000000000000101000010000100000010010010000000001010100100000000,
@@ -302,6 +370,39 @@ mod tests {
             0b0100000100000000000000000000000000000010001000011010100110001101,
             board.black_pieces
         );
+
+        let expected_game_state = GameState {
+            white_turn: false,
+            castling: Castling {
+                white_king_side: true,
+                white_queen_side: true,
+                black_king_side: true,
+                black_queen_side: true,
+            },
+            en_passant: None,
+            half_moves: 0,
+            full_moves: 1,
+        };
+        assert_eq!(board.game_state, expected_game_state);
+    }
+
+    #[test]
+    fn en_passant_and_castling_rights() {
+        let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQ c5 30 44");
+        
+        let expected_game_state = GameState {
+            white_turn: false,
+            castling: Castling {
+                white_king_side: true,
+                white_queen_side: true,
+                black_king_side: false,
+                black_queen_side: false,
+            },
+            en_passant: Some(26),
+            half_moves: 30,
+            full_moves: 44,
+        };
+        assert_eq!(board.game_state, expected_game_state);
     }
 
     #[test]
@@ -311,5 +412,17 @@ mod tests {
         let board = Board::from_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
         assert_eq!(result_string, format!("{board}"));
+    }
+
+    #[test]
+    fn transfer_square_to_num() {
+        let num = square_to_num("a8".to_string());
+        assert_eq!(num, 0);
+
+        let num = square_to_num("e4".to_string());
+        assert_eq!(num, 36);
+
+        let num = square_to_num("h2".to_string());
+        assert_eq!(num, 55);
     }
 }
