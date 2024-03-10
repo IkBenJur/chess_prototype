@@ -124,6 +124,31 @@ impl Board {
     }
 }
 
+fn square_to_num(square: String) -> u32 {
+    let chars: Vec<char> = square.chars().collect();
+    let col_char = chars.get(0).expect("Invalid square");
+    let row_num = chars
+        .get(1)
+        .expect("Invalid square")
+        .to_digit(10)
+        .expect("Invalid square");
+
+    let col_num = match col_char {
+        'a' => 0,
+        'b' => 1,
+        'c' => 2,
+        'd' => 3,
+        'e' => 4,
+        'f' => 5,
+        'g' => 6,
+        'h' => 7,
+        'i' => 8,
+        _ => panic!("Invalid square num"),
+    };
+
+    return (64 - (row_num * 8)) + col_num;
+}
+
 fn map_bitboard_to_string(
     mut bitboard: Bitboard,
     mut board_string: Vec<char>,
