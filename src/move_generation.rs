@@ -68,6 +68,49 @@ fn pawn_moves_double_push(board: &Board, white_turn: bool) -> Vec<Move> {
     return moves;
 }
 
+fn attacking_pawn_moves(board: &Board) -> Vec<Move> {
+    let mut moves: Vec<Move> = Vec::new();
+    let white_turn: bool = board.game_state.white_turn;
+
+    let enemy_pieces = if white_turn {
+        board.black_pieces
+    } else {
+        board.white_pieces
+    };
+
+    let mut pawns = board.pieces[Pieces::Pawns as usize]
+        & if white_turn {
+            board.white_pieces
+        } else {
+            board.black_pieces
+        };
+
+    while pawns > 0 {
+        let from = pawns.trailing_zeros();
+
+        let mut pawn_moves = if white_turn {
+            (1 << from >> 7 & enemy_pieces & !FILE_A) | (1 << from >> 9 & enemy_pieces & !FILE_H)
+        } else {
+            (1 << from << 7 & enemy_pieces & !FILE_H) | (1 << from << 9 & enemy_pieces & !FILE_A)
+        };
+
+        while pawn_moves > 0 {
+            let to = pawn_moves.trailing_zeros();
+            moves.push(Move {
+                from,
+                to,
+                piece: Pieces::Pawns,
+            });
+
+            pawn_moves &= !(1 << to);
+        }
+
+        pawns &= !(1 << from);
+    }
+
+    return moves;
+}
+
 fn knight_moves(board: &Board, white_turn: bool) -> Vec<Move> {
     let mut moves: Vec<Move> = Vec::new();
     let mut knights = board.pieces[Pieces::Knights as usize]
@@ -1028,7 +1071,6 @@ fn queen_moves(board: &Board, white_turn: bool) -> Vec<Move> {
     }
 
     return moves;
-
 }
 
 #[cfg(test)]
@@ -1116,6 +1158,48 @@ mod tests {
 
         let expected_black_moves: Vec<Move> = vec![];
         let black_moves = pawn_moves_double_push(&board, false);
+        assert_eq!(expected_black_moves, black_moves);
+    }
+
+    #[test]
+    fn find_attacking_pawn_moves() {
+        let board = Board::from_fen("2k5/2N2N2/1PP3rp/5n1b/q1pB1nB1/Pp2PpQ1/R1RpP3/1K6 w - - 0 1");
+
+        let expected_white_moves = vec![
+            Move {
+                from: 44,
+                to: 37,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 52,
+                to: 45,
+                piece: Pieces::Pawns,
+            },
+        ];
+        let white_moves = attacking_pawn_moves(&board);
+        assert_eq!(expected_white_moves, white_moves);
+
+        let board = Board::from_fen("2k5/2N2N2/1PP3rp/5n1b/q1pB1nB1/Pp2PpQ1/R1RpP3/1K6 b - - 0 1");
+
+        let expected_black_moves = vec![
+            Move {
+                from: 41,
+                to: 48,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 41,
+                to: 50,
+                piece: Pieces::Pawns,
+            },
+            Move {
+                from: 45,
+                to: 52,
+                piece: Pieces::Pawns,
+            },
+        ];
+        let black_moves = attacking_pawn_moves(&board);
         assert_eq!(expected_black_moves, black_moves);
     }
 
@@ -1357,7 +1441,7 @@ mod tests {
     #[test]
     fn find_bishop_moves() {
         let board = Board::from_fen("8/2prkp2/1nQpB1p1/1p2Pn2/p4Pq1/1b3N2/3B3K/2R2R2 w - - 0 1");
-        
+
         let expected_white_moves: Vec<Move> = vec![
             Move {
                 from: 20,
@@ -1455,9 +1539,9 @@ mod tests {
     }
 
     #[test]
-    fn find_queen_moves(){
+    fn find_queen_moves() {
         let board = Board::from_fen("6Nr/5P1p/8/P5q1/3p3B/nK4Q1/RP1Pk3/1R2nb2 w - - 0 1");
-        
+
         let expected_white_moves: Vec<Move> = vec![
             Move {
                 from: 46,
