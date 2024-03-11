@@ -78,6 +78,13 @@ fn attacking_pawn_moves(board: &Board) -> Vec<Move> {
         board.white_pieces
     };
 
+    //Add en passant square if it is assigned
+    let enemy_pieces = if let Some(en_passant_square) = board.game_state.en_passant {
+        enemy_pieces | (1 << en_passant_square)
+    } else {
+        enemy_pieces
+    };
+
     let mut pawns = board.pieces[Pieces::Pawns as usize]
         & if white_turn {
             board.white_pieces
@@ -1199,6 +1206,40 @@ mod tests {
                 piece: Pieces::Pawns,
             },
         ];
+        let black_moves = attacking_pawn_moves(&board);
+        assert_eq!(expected_black_moves, black_moves);
+    }
+
+    #[test]
+    fn find_en_passant_moves() {
+        let board =
+            Board::from_fen("rnbqk1nr/ppp2pbp/3p2p1/3Pp3/4P3/5P2/PPP3PP/RNBKQBNR w - e6 0 1");
+
+        let expected_white_moves: Vec<Move> = vec![Move {
+            from: 27,
+            to: 20,
+            piece: Pieces::Pawns,
+        }];
+        let white_moves = attacking_pawn_moves(&board);
+        assert_eq!(expected_white_moves, white_moves);
+
+        let board =
+            Board::from_fen("rnbqk1nr/ppp2pb1/3p2p1/3Pp1Pp/4P3/5P2/PPP4P/RNBKQBNR w - h6 0 1");
+        let expected_white_moves: Vec<Move> = vec![Move {
+            from: 30,
+            to: 23,
+            piece: Pieces::Pawns,
+        }];
+        let white_moves = attacking_pawn_moves(&board);
+        assert_eq!(expected_white_moves, white_moves);
+
+        let board =
+            Board::from_fen("rnbqk1nr/1pp2pb1/3p2p1/3Pp1Pp/pP2P3/5P2/P1P4P/RNBKQBNR b - b3 0 1");
+        let expected_black_moves = vec![Move {
+            from: 32,
+            to: 41,
+            piece: Pieces::Pawns,
+        }];
         let black_moves = attacking_pawn_moves(&board);
         assert_eq!(expected_black_moves, black_moves);
     }
