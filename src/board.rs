@@ -13,19 +13,19 @@ pub struct Board {
 
 #[derive(PartialEq, Debug)]
 pub struct GameState {
-    white_turn: bool,
-    en_passant: Option<u32>,
-    castling: Castling,
-    half_moves: u32,
-    full_moves: u32,
+    pub white_turn: bool,
+    pub en_passant: Option<u32>,
+    pub castling: Castling,
+    pub half_moves: u32,
+    pub full_moves: u32,
 }
 
 #[derive(PartialEq, Debug)]
 pub struct Castling {
-    white_queen_side: bool,
-    white_king_side: bool,
-    black_queen_side: bool,
-    black_king_side: bool,
+    pub white_queen_side: bool,
+    pub white_king_side: bool,
+    pub black_queen_side: bool,
+    pub black_king_side: bool,
 }
 
 impl Board {
